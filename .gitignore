@@ -1,0 +1,33 @@
+# Environment variables
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.pytest_cache/
+htmlcov/
+.mypy_cache/
+.dmypy.json
+.ruff_cache/
+.vscode/
+*.log
+
+# Node
+node_modules/
+build/
+dist/
+.DS_Store
+*.env.local
+*.env.*.local
+
+# Docker
+.docker/

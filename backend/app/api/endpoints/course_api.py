@@ -1,61 +1,41 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from sqlalchemy import text # נשאיר את זה זמנית, נחליט אם למחוק בהמשך
+from typing import List
+from app.schemas.course_schemas import CourseCreate, CourseResponse
+from app.services import course_service
+from app.database.database import get_db
+# הקוד המקורי שלך כנראה ייבא את המודל, אם אין בו צורך ב-router עצמו, ניתן להסירו
+# from app.models.Course import Course as models_course # זה היה שם הייבוא שלך בעבר
 
-# ייבוא מהמודולים החדשים שיצרנו
-from ...database.database import get_db, Base, engine # ייבוא Base ו-engine
-from ...schemas import course as schemas_course # ייבוא ישיר של הסכימות מקובץ course
-from ...models import Course as models_course # ייבוא מודל הקורס
+router = APIRouter(prefix="/courses", tags=["Courses"])
 
-
-# ניתן ליצור פונקציות CRUD כאן או בתיקיית crud
-# נתחיל לשים את הלוגיקה כאן, ואז נשקול להעביר ל-crud אם תרצה/י
-
-router = APIRouter(
-    prefix="/courses", # הגדרת קידומת לכל ה-endpoints ב-router הזה
-    tags=["courses"],  # תיוג עבור ה-Swagger UI
-)
-
-@router.post("/", response_model=schemas_course.CourseResponse, status_code=status.HTTP_201_CREATED)
-def create_course(course: schemas_course.CourseCreate, db: Session = Depends(get_db)):
-    db_course = models_course.Course(title=course.title, description=course.description, instructor=course.instructor)
-    db.add(db_course)
-    db.commit()
-    db.refresh(db_course)
+@router.post("/", response_model=CourseResponse, status_code=status.HTTP_201_CREATED)
+def create_course_endpoint(course: CourseCreate, db: Session = Depends(get_db)):
+    """
+    Create a new course.
+    """
+    db_course = course_service.create_new_course(db=db, course=course)
+    if db_course is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Course with this title already exists"
+        )
     return db_course
 
-@router.get("/", response_model=list[schemas_course.CourseResponse])
-def read_courses(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    courses = db.query(models_course.Course).offset(skip).limit(limit).all()
+@router.get("/", response_model=List[CourseResponse])
+def read_courses_endpoint(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    """
+    Retrieve a list of all courses.
+    """
+    courses = course_service.get_all_courses(db, skip=skip, limit=limit)
     return courses
 
-@router.get("/{course_id}", response_model=schemas_course.CourseResponse)
-def read_course(course_id: int, db: Session = Depends(get_db)):
-    course = db.query(models_course.Course).filter(models_course.Course.id == course_id).first()
+@router.get("/{course_id}", response_model=CourseResponse)
+def read_course_endpoint(course_id: int, db: Session = Depends(get_db)):
+    """
+    Retrieve a single course by ID.
+    """
+    course = course_service.get_course_by_id(db, course_id=course_id)
     if course is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Course not found")
     return course
-
-@router.put("/{course_id}", response_model=schemas_course.CourseResponse)
-def update_course(course_id: int, course: schemas_course.CourseCreate, db: Session = Depends(get_db)):
-    db_course = db.query(models_course.Course).filter(models_course.Course.id == course_id).first()
-    if db_course is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Course not found")
-
-    db_course.title = course.title
-    db_course.description = course.description
-    db_course.instructor = course.instructor
-
-    db.commit()
-    db.refresh(db_course)
-    return db_course
-
-@router.delete("/{course_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_course(course_id: int, db: Session = Depends(get_db)):
-    db_course = db.query(models_course.Course).filter(models_course.Course.id == course_id).first()
-    if db_course is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Course not found")
-
-    db.delete(db_course)
-    db.commit()
-    return # No content for 204 status

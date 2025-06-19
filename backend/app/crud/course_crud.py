@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.models.course import Course # ייבוא נכון של מודל Course
+from app.models.Course import Course # ייבוא נכון של מודל Course
 from app.schemas.course_schemas import CourseCreate # ייבוא נכון של סכמת CourseCreate
 
 def get_course(db: Session, course_id: int):

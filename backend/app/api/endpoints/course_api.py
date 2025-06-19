@@ -5,7 +5,8 @@ from sqlalchemy import text # נשאיר את זה זמנית, נחליט אם �
 # ייבוא מהמודולים החדשים שיצרנו
 from ...database.database import get_db, Base, engine # ייבוא Base ו-engine
 from ...schemas import course as schemas_course # ייבוא ישיר של הסכימות מקובץ course
-from ...models import course as models_course # ייבוא מודל הקורס
+from ...models import Course as models_course # ייבוא מודל הקורס
+
 
 # ניתן ליצור פונקציות CRUD כאן או בתיקיית crud
 # נתחיל לשים את הלוגיקה כאן, ואז נשקול להעביר ל-crud אם תרצה/י

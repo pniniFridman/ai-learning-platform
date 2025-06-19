@@ -4,10 +4,10 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text # נשמור את זה אם נשתמש ב-health_check בקובץ זה
 # ייבוא תלויות ממבנה התיקיות החדש
 from .database.database import engine, Base, get_db
-from .models import course as models_course # ייבוא מודל הקורס כדי לוודא ש-Base.metadata רואה אותו
-from .api.endpoints import course as course_api # ייבוא ה-router של הקורסים
+from app.api.endpoints import course_api 
 # ייבוא המודלים החדשים כדי ש-SQLAlchemy יכיר אותם ויצור טבלאות עבורם
 # חשוב שהייבוא יתבצע לפני קריאה ל-Base.metadata.create_all()
+from .models import Course
 from app.models.User import User
 from app.models.Category import Category
 from app.models.SubCategory import SubCategory

@@ -45,5 +45,5 @@ async def health_check(db: Session = Depends(get_db)):
     except Exception as e:
         db_connected = False
     finally:
-        pass # הסרנו את ה-print, אין צורך ב-finally אם אין פעולה נוספת
+        pass 
     return {"status": "ok", "db_connected": db_connected}

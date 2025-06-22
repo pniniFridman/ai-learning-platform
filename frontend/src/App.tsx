@@ -1,6 +1,6 @@
-import React from 'react';
-import { RouterProvider } from 'react-router-dom';
-import router from './router'; // ייבוא ה-router שיצרנו
+// App.tsx
+import { RouterProvider } from 'react-router-dom'; // ודא שרק RouterProvider מיובא
+import router from '@/router'; // ייבוא ה-router שיצרת בקובץ router/index.tsx
 
 function App() {
   return (

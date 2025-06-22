@@ -1,5 +1,4 @@
-import React from 'react';
-
+// NotFoundPage.tsx
 const NotFoundPage: React.FC = () => {
   return (
     <div>

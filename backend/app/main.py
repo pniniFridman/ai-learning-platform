@@ -1,8 +1,12 @@
+# main.py
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from typing import List
+
+# הוסף את ייבוא ה-CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware 
 
 # ייבוא הגדרות מסד הנתונים
 from app.database.database import engine, Base, get_db
@@ -25,9 +29,6 @@ from app.api.endpoints import course_api
 # פונקציה ליצירת טבלאות במסד הנתונים בעת הפעלת האפליקציה
 def create_db_tables():
     print("Creating database tables...")
-    # Base.metadata.create_all יוצר את כל הטבלאות שהוגדרו באמצעות Base
-    # חשוב לוודא שכל המודלים (User, Category, SubCategory, Prompt, Course) מיובאים למעלה
-    # כדי ש-Base.metadata יזהה אותם.
     Base.metadata.create_all(bind=engine)
     print("Database tables created.")
 
@@ -40,16 +41,31 @@ async def lifespan(app: FastAPI):
     """
     create_db_tables()
     yield
-    # כאן ניתן להוסיף לוגיקה שתרוץ בעת כיבוי השרת (לדוגמה, סגירת משאבים)
     print("Application shutdown.")
 
-# הגדרת אפליקציית FastAPI
+# הגדרת אפליקציית FastAPI (הגדרה יחידה ונכונה)
 app = FastAPI(
     title="AI Learning Platform API",
     description="API for managing users, categories, prompts, and courses in an AI-powered learning platform.",
     version="0.1.0",
     lifespan=lifespan # קשור את פונקציית ה-lifespan לאפליקציה
 )
+
+# הגדרות CORS - בלוק זה חייב להיות כאן, אחרי הגדרת ה-app
+origins = [
+    "http://localhost:5173",  # הכתובת של ה-Frontend שלך
+    "http://127.0.0.1:5173",  # ודא שגם זה כלול ליתר ביטחון
+    # הוסף כאן כל כתובת נוספת שה-Frontend יכול לרוץ עליה
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],  # מאפשר את כל המתודות (GET, POST, PUT, DELETE, OPTIONS וכו')
+    allow_headers=["*"],  # מאפשר את כל הכותרות בבקשה
+)
+
 
 # כלול את ה-routers של ה-API
 # כל router מוסיף קבוצה של endpoints תחת prefix מסוים
@@ -74,15 +90,13 @@ async def health_check(db: Session = Depends(get_db)):
     """
     db_connected = False
     try:
-        # נסה לבצע שאילתה פשוטה לבדיקת חיבוריות DB
         db.execute(text("SELECT 1"))
         db_connected = True
     except Exception as e:
         print(f"Database connection error: {e}")
         db_connected = False
     finally:
-        # ודא שהסשן נסגר בין אם הייתה שגיאה ובין אם לא
-        # (get_db already handles closing in its yield block, but explicit is fine here)
         pass # The get_db dependency handles closing the session automatically
 
     return {"status": "ok", "db_connected": db_connected}
+
